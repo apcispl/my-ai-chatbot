@@ -14,32 +14,36 @@ export default function ChatPage() {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
+  
     const userMessage: Message = {
       role: "user",
       content: input,
     };
-
-    setMessages((prev) => [...prev, userMessage]);
+  
+    const updatedMessages = [...messages, userMessage];
+  
+    setMessages(updatedMessages);
     setInput("");
     setLoading(true);
-
+  
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({
+          messages: updatedMessages,
+        }),
       });
-
+  
       const data = await res.json();
-
+  
       const botMessage: Message = {
         role: "assistant",
         content: data.reply,
       };
-
+  
       setMessages((prev) => [...prev, botMessage]);
     } catch (err) {
       setMessages((prev) => [
@@ -53,7 +57,7 @@ export default function ChatPage() {
       setLoading(false);
     }
   };
-
+  
   return (
     <div style={styles.container}>
       <div style={styles.chatBox}>
