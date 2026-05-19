@@ -1,5 +1,34 @@
 import { NextResponse } from "next/server";
 
+// const tools = [
+//   {
+//     type: "function",
+//     function: {
+//       name: "getCurrentTime",
+//       description: "Get the current server time",
+//       parameters: {
+//         type: "object",
+//         properties: {},
+//       },
+//     },
+//   },
+// ];
+
+const tools = [
+  {
+    type: "function",
+    function: {
+      name: "getCurrentTime",
+      description:
+        "Get ONLY the current server date and time. Use only when user asks specifically about time/date. DO NOT use for weather or other realtime information.",
+      parameters: {
+        type: "object",
+        properties: {},
+      },
+    },
+  },
+];
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -32,15 +61,34 @@ export async function POST(req: Request) {
             },
             ...messages,
           ],
+          tools,
+          tool_choice: "auto",
         }),
       }
     );
 
     const data = await response.json();
+    // console.log(JSON.stringify(data, null, 2));
 
+    const toolCalls = data?.choices?.[0]?.message?.tool_calls;
+
+    if (toolCalls && toolCalls.length > 0) {
+      const toolCall = toolCalls[0];
+    
+      if (toolCall.function.name === "getCurrentTime") {
+        const currentTime = new Date().toString();
+    
+        return NextResponse.json({
+          reply: `Current server time is: ${currentTime}`,
+        });
+      }
+    }
+    
     const reply = data?.choices?.[0]?.message?.content;
-
+    
     return NextResponse.json({ reply });
+
+    // return NextResponse.json({ reply });
   } catch (err: any) {
     return NextResponse.json(
       {
